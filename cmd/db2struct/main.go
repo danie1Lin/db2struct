@@ -4,12 +4,17 @@ import (
 	"fmt"
 	"os"
 	"strconv"
+	"strings"
 
 	"github.com/Shelnutt2/db2struct"
 	goopt "github.com/droundy/goopt"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/howeyc/gopass"
+
+	pluralize "github.com/gertd/go-pluralize"
 )
+
+var pluralizeClient *pluralize.Client = pluralize.NewClient()
 
 var mariadbHost = os.Getenv("MYSQL_HOST")
 var mariadbHostPassed = goopt.String([]string{"-H", "--host"}, "", "Host to check mariadb status of")
@@ -93,7 +98,12 @@ func main() {
 
 	// If structName is not set we need to default it
 	if structName == nil || *structName == "" {
-		*structName = "newstruct"
+		t := pluralizeClient.Singular(*mariadbTable)
+		ts := strings.Split(t, "_")
+		for i := range ts {
+			ts[i] = strings.ToUpper(string(ts[i][0])) + string(ts[i][1:])
+		}
+		*structName = strings.Join(ts, "")
 	}
 	// If packageName is not set we need to default it
 	if packageName == nil || *packageName == "" {
