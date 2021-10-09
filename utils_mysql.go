@@ -97,11 +97,11 @@ func generateMysqlTypes(obj map[string]map[string]string, columnsSorted []string
 
 		if len(annotations) > 0 {
 			// add colulmn comment
-			comment:=mysqlType["comment"]
+			comment := mysqlType["comment"]
 			structure += fmt.Sprintf("\n%s %s `%s`  //%s", fieldName, valueType, strings.Join(annotations, " "), comment)
 			//structure += fmt.Sprintf("\n%s %s `%s`", fieldName, valueType, strings.Join(annotations, " "))
 		} else {
-			structure += fmt.Sprintf("\n%s %s",fieldName,valueType)
+			structure += fmt.Sprintf("\n%s %s", fieldName, valueType)
 		}
 	}
 	return structure
@@ -110,6 +110,11 @@ func generateMysqlTypes(obj map[string]map[string]string, columnsSorted []string
 // mysqlTypeToGoType converts the mysql types to go compatible sql.Nullable (https://golang.org/pkg/database/sql/) types
 func mysqlTypeToGoType(mysqlType string, nullable bool, gureguTypes bool) string {
 	switch mysqlType {
+	case "json":
+		if nullable {
+			return pGormDatatypesJSON
+		}
+		return gormDatatypesJSON
 	case "tinyint", "int", "smallint", "mediumint":
 		if nullable {
 			if gureguTypes {
@@ -126,12 +131,12 @@ func mysqlTypeToGoType(mysqlType string, nullable bool, gureguTypes bool) string
 			return sqlNullInt
 		}
 		return golangInt64
-	case "char", "enum", "varchar", "longtext", "mediumtext", "text", "tinytext", "json":
+	case "char", "enum", "varchar", "longtext", "mediumtext", "text", "tinytext":
 		if nullable {
 			if gureguTypes {
 				return gureguNullString
 			}
-			return sqlNullString
+			return pString
 		}
 		return "string"
 	case "date", "datetime", "time", "timestamp":
